@@ -2,6 +2,7 @@ import { asyncOra } from '@electron-forge/async-ora';
 import { BaseTemplate } from '@electron-forge/template-base';
 import fs from 'fs-extra';
 import path from 'path';
+import exec from 'child_process';
 
 class TypeScriptTemplate extends BaseTemplate {
   public templateDir = path.resolve(__dirname, '..', 'tmpl');
@@ -15,6 +16,16 @@ class TypeScriptTemplate extends BaseTemplate {
       // Configure scripts for TS template
       packageJSON.scripts.lint = 'eslint --ext .ts .';
       packageJSON.scripts.start = 'tsc && electron-forge start';
+      packageJSON.config.forge.hooks.packageAfterCopy = async () => {
+        exec("tsc", (error, stdout, stderr) => {
+          if (error) {
+            console.error(`exec error: ${error}`);
+            return;
+          }
+          console.log('stdout: ' + stdout);
+          console.log('stderr: ' + stderr);
+        })
+      }
       packageJSON.main = 'dist/index.js';
 
       await fs.writeJson(packageJSONPath, packageJSON, { spaces: 2 });
